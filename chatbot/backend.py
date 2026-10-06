@@ -31,6 +31,7 @@ graph.add_edge("ChatBot",END)
 
 workflow = graph.compile(checkpointer=checkpointer)
 
-# thread_id = 1
-# config= {'configurable':{'thread_id':thread_id}}
-# while
+thread_id = 1
+config= {'configurable':{'thread_id':thread_id}}
+workflow.invoke({"message":"hi my name is ayush"},config=config)
+print(workflow.get_state(config={'configurable':{"thread_id":thread_id}}).values['message'])

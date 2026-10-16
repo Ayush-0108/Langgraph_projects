@@ -27,7 +27,7 @@ Keep the `.env` file private; do not commit API keys.
 
 ## Run
 
-From the repository root, with the virtual environment active:
+From the repository root, with the virtual environment active, run the in-memory version:
 
 ```powershell
 streamlit run chatbot/frontend.py
@@ -35,8 +35,18 @@ streamlit run chatbot/frontend.py
 
 Streamlit will print a local URL to open in your browser.
 
+To run the database-backed version, which displays saved conversations in the sidebar, use:
+
+```powershell
+streamlit run chatbot/frontend_database.py
+```
+
+Run this command from the repository root. The database-backed backend opens `chatbot.db` using a path relative to the current working directory, so launching it from a different directory may create or use a different database file.
+
 ## How it works
 
 - `backend.py` defines the LangGraph state, Groq chat model, chatbot node, and in-memory checkpointer.
 - `frontend.py` renders the chat interface and sends each submitted message to the graph.
-- The UI keeps the displayed message history in the Streamlit session. The graph checkpointer stores conversation state in memory and does not persist it after the backend process exits.
+- The in-memory frontend keeps displayed messages in the Streamlit session and graph state in memory; this data is not persisted after the backend process exits.
+- `backend_database.py` defines the SQLite-backed graph checkpointer and stores conversation titles in the `chat_titles` table.
+- `frontend_database.py` provides the sidebar for browsing saved conversations. Its conversation list is loaded from the SQLite checkpoints when the Streamlit session starts.

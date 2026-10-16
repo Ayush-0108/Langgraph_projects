@@ -1,3 +1,5 @@
 ﻿.venv/
 .env
 .ipynb_checkpoints/
+langsmith-masterclass/
+chatbot.db*

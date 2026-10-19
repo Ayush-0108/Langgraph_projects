@@ -1,6 +1,6 @@
 import streamlit as st
 from backend_database import workflow,retrieve_all_threads,load_titles,save_title
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 import uuid
 from langchain_groq import ChatGroq
 
@@ -190,23 +190,37 @@ if user_input:
 
     with st.chat_message("assistant"):
 
-        ai_message = st.write_stream(
+        status_holder = {"box": None}
 
-            message_chunk.content
-
+        def ai_only_stream():
             for message_chunk, metadata in workflow.stream(
-
                 {
                     "message": [
                         HumanMessage(content=user_input)
                     ]
                 },
-
                 config=config,
+                stream_mode="messages",
+            ):
+                # Lazily create and update the same status container when a tool runs.
+                if isinstance(message_chunk, ToolMessage):
+                    tool_name = getattr(message_chunk, "name", "tool")
+                    if status_holder["box"] is None:
+                        status_holder["box"] = st.status(
+                            f"🔧 Using `{tool_name}` …", expanded=True
+                        )
+                    else:
+                        status_holder["box"].update(
+                            label=f"🔧 Using `{tool_name}` …",
+                            state="running",
+                            expanded=True,
+                        )
 
-                stream_mode="messages"
-            )
-        )
+                # Stream only assistant tokens.
+                if isinstance(message_chunk, AIMessage):
+                    yield message_chunk.content
+
+        ai_message = st.write_stream(ai_only_stream())
 
 
     # ------------------------------------------------------------
